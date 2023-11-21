@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Pessoas</title>
+    <style>
+        
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        table, th, td {
+            border: 1px solid black;
+        }
+
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <fieldset>
+        <legend>Cadastro de Pessoas</legend>
+        <form class="form js-form">
+            <label for="name">
+                Nome
+                <input class="form-field js-field" id="name" maxlength="120" name="name" required type="text">
+            </label>
+            <label for="birth-date">
+                Data de Nascimento (dia/mês/ano)
+                <input class="form-field js-field" id="birth-date" name="birth-date" required type="text">
+            </label>
+            <button type="submit">Salvar</button>
+        </form>
+    </fieldset>
+
+    <table id="data-table">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Data de Nascimento</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Carrega dados existentes do localStorage na carga da página
+            loadSavedData();
+        });
+
+        document.querySelector('.js-form').addEventListener('submit', function (event) {
+            event.preventDefault(); // Impede a submissão padrão do formulário
+
+            // Obtém os valores dos campos
+            const nameInput = document.getElementById('name');
+            const name = nameInput.value;
+            const birthDateInput = document.getElementById('birth-date');
+            const birthDate = birthDateInput.value;
+
+            // Validação do nome
+            const nameRegex = /^[a-zA-Z]+$/;
+            if (name.length < 3 || name.length > 120 || !name.match(nameRegex)) {
+                alert('O nome deve ter entre 3 e 120 letras e conter apenas letras.');
+                nameInput.focus(); // Define o foco no campo de nome
+                return;
+            }
+
+            // Validação da data de nascimento
+            const dateRegex = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/;
+            if (!birthDate.match(dateRegex)) {
+                alert('A data deve estar no formato dia/mês/ano e o mês deve estar entre 1 e 12.');
+                birthDateInput.focus(); // Define o foco no campo de data
+                return;
+            }
+
+            const form = document.querySelector('.js-form');
+            const submitButton = form.querySelector('button');
+            const submitButtonText = submitButton.textContent;
+
+            const currentRowIndex = form.dataset.rowIndex;
+
+            if (currentRowIndex === undefined) {
+                // Cria: Adiciona dados à tabela e ao localStorage
+                const newData = { name, birthDate };
+                addToTable(newData);
+                saveData(newData);
+            } else {
+                // Atualiza: Atualiza dados na tabela e no localStorage
+                updateTableRow(currentRowIndex, { name, birthDate });
+                updateData(currentRowIndex, { name, birthDate });
+
+                // Reseta o formulário
+                form.reset();
+                form.dataset.rowIndex = undefined;
+                submitButton.textContent = submitButtonText;
+            }
+        });
+
+        function loadSavedData() {
+            const savedData = JSON.parse(localStorage.getItem('savedData')) || [];
+            const tableBody = document.querySelector('#data-table tbody');
+
+            savedData.forEach((data, index) => {
+                addToTable(data, index);
+            });
+        }
+
+        function saveData(newData) {
+            const savedData = JSON.parse(localStorage.getItem('savedData')) || [];
+            savedData.push(newData);
+            localStorage.setItem('savedData', JSON.stringify(savedData));
+        }
+
+        function deleteData(index) {
+            const savedData = JSON.parse(localStorage.getItem('savedData')) || [];
+            savedData.splice(index, 1);
+            localStorage.setItem('savedData', JSON.stringify(savedData));
+            refreshTable();
+        }
+
+        function updateData(index, newData) {
+            const savedData = JSON.parse(localStorage.getItem('savedData')) || [];
+            savedData[index] = newData;
+            localStorage.setItem('savedData', JSON.stringify(savedData));
+        }
+
+        function addToTable(data, index) {
+            const tableBody = document.querySelector('#data-table tbody');
+            const newRow = tableBody.insertRow();
+            const cell1 = newRow.insertCell(0);
+            const cell2 = newRow.insertCell(1);
+            const cell3 = newRow.insertCell(2);
+            cell1.textContent = data.name;
+            cell2.textContent = data.birthDate;
+
+            // Botão de Atualizar
+            const updateButton = document.createElement('button');
+            updateButton.textContent = 'Atualizar';
+            updateButton.addEventListener('click', function () {
+                updateFormForUpdate(index, data);
+            });
+
+            // Botão de Excluir
+            const deleteButton = document.createElement('button');
+            deleteButton.textContent = 'Excluir';
+            deleteButton.addEventListener('click', function () {
+                deleteData(index);
+            });
+
+            cell3.appendChild(updateButton);
+            cell3.appendChild(deleteButton);
+        }
+
+        function updateFormForUpdate(index, data) {
+            const form = document.querySelector('.js-form');
+            const nameInput = document.getElementById('name');
+            const birthDateInput = document.getElementById('birth-date');
+            const submitButton = form.querySelector('button');
+
+            // Preenche os campos do formulário com os dados existentes
+            nameInput.value = data.name;
+            birthDateInput.value = data.birthDate;
+
+            // Atualiza o conjunto de dados do formulário com o índice da linha atual
+            form.dataset.rowIndex = index;
+
+            // Altera o texto do botão de envio para indicar uma atualização
+            submitButton.textContent = 'Atualizar';
+
+            // Foca no campo de nome para uma melhor experiência do usuário
+            nameInput.focus();
+        }
+
+        function updateTableRow(index, newData) {
+            const tableBody = document.querySelector('#data-table tbody');
+            const rowToUpdate = tableBody.rows[index];
+            const cell1 = rowToUpdate.cells[0];
+            const cell2 = rowToUpdate.cells[1];
+
+            cell1.textContent = newData.name;
+            cell2.textContent = newData.birthDate;
+        }
+
+        function refreshTable() {
+            const tableBody = document.querySelector('#data-table tbody');
+            tableBody.innerHTML = '';
+            loadSavedData();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <fieldset>
+        <legend>Cadastro de Pessoas</legend>
+        <form class="form js-form">
+            <label for="name">
+                Nome
+                <input class="form-field js-field" id="name" maxlength="120" name="name" required type="text">
+            </label>
+            <label for="birth-date">
+                Data de Nascimento (dia/mês/ano)
+                <input class="form-field js-field" id="birth-date" name="birth-date" required type="text">
+            </label>
+            <button type="submit">Salvar</button>
+        </form>
+    </fieldset>
+
+    <script>
+        document.querySelector('.js-form').addEventListener('submit', function (event) {
+            console.log('Form submitted'); // Debugging log
+
+            // Get the input values
+            const nameInput = document.getElementById('name');
+            const name = nameInput.value;
+            const birthDateInput = document.getElementById('birth-date');
+            const birthDate = birthDateInput.value;
+
+            // Validate the name
+            const nameRegex = /^[a-zA-Z]+$/;
+            if (name.length < 3 || name.length > 120 || !name.match(nameRegex)) {
+                alert('O nome deve ter entre 3 e 120 letras e conter apenas letras.');
+                nameInput.focus(); // Set focus to the name input
+                event.preventDefault(); // Prevent the form submission
+                return;
+            }
+
+            // Validate the birth date
+            const dateRegex = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/;
+            if (!birthDate.match(dateRegex)) {
+                alert('A data deve estar no formato dia/mês/ano e o mês deve estar entre 1 e 12.');
+                birthDateInput.focus(); // Set focus to the date input
+                event.preventDefault(); // Prevent the form submission
+                return;
+            }
+
+            // Log the data to the console (you can replace this with your desired functionality)
+            console.log('Name:', name);
+            console.log('Birth Date:', birthDate);
+        });
+    </script>
+</body>
+</html>
